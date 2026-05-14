@@ -467,7 +467,12 @@ try {
                 
                 Write-ColorMessage "`nParte 2 - Limpeza de arquivos..." Cyan
                 Invoke-WsusCleanupWithRetry "Limpando arquivos não necessários" {
-                    Invoke-WsusServerCleanup -UpdateServer $wsus -CleanupUnneededContentFiles
+                    Invoke-WsusServerCleanup -UpdateServer $wsus `
+                        -CleanupUnneededContentFiles `
+                        -CompressUpdates `
+                        -DeclineExpiredUpdates `
+                        -DeclineSupersededUpdates `
+                        -CleanupObsoleteUpdates
                     Start-Sleep -Seconds 30
                 }
                 
