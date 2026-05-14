@@ -204,7 +204,7 @@ function Reindex-WsusDatabase {
             if ($fragmentedTables.Count -eq 0 -or $forceReindex) {
                 Write-ColorMessage "Realizando reindexação completa de todas as tabelas principais..." Yellow
                 $tabelasPadrao = @('PUBLICATION', 'SYNCSUBSCRIPTION', 'TBSUPERSEDEDBY', 'tbUpdate', 
-                                   'tbComputerTarget', 'tbComputerTargetDetail', 'tbComuputerStatus', 
+                                   'tbComputerTarget', 'tbComputerTargetDetail', 'tbComputerStatus', 
                                    'tbTargetGroup', 'tbUpdateApproval', 'tbUpdateRevision')
                 
                 foreach ($tb in $tabelasPadrao) {
