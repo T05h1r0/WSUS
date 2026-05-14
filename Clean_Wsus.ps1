@@ -170,8 +170,9 @@ ORDER BY
     }
 }
 
-# Função CORRIGIDA para reindexar o banco de dados WSUS
-function Reindex-WsusDatabase {
+# Função para reindexar o banco de dados WSUS
+# FIX PSUseApprovedVerbs: renomeado de Reindex-WsusDatabase para Invoke-WsusReindex
+function Invoke-WsusReindex {
     param (
         [string]$databaseType = "WID",
         [array]$fragmentedTables = @(),
@@ -211,7 +212,7 @@ function Reindex-WsusDatabase {
                      $sqlCommands += "ALTER INDEX ALL ON [$tb] REBUILD;"
                 }
             } else {
-                # Reindexação seletiva (CORREÇÃO APLICADA AQUI)
+                # Reindexação seletiva
                 Write-ColorMessage "Realizando reindexação seletiva apenas das tabelas fragmentadas..." Yellow
                 
                 # Usamos um HashSet para garantir que não tentamos reindexar a mesma tabela 2x se ela tiver 2 índices ruins
@@ -219,7 +220,8 @@ function Reindex-WsusDatabase {
                 
                 foreach ($table in $fragmentedTables) {
                     if (-not [string]::IsNullOrWhiteSpace($table.TableName)) {
-                        $void = $tabelasUnicas.Add($table.TableName)
+                        # FIX PSUseDeclaredVarsMoreThanAssignments: usar [void] em vez de $void
+                        [void]$tabelasUnicas.Add($table.TableName)
                     }
                 }
 
@@ -284,7 +286,8 @@ function Test-WsusHealth {
         $healthChecks["IIS"] = ($iisService.Status -eq "Running")
         
         # Verifica conexão com banco
-        $void = $wsus.GetDatabaseConfiguration()
+        # FIX PSUseDeclaredVarsMoreThanAssignments: usar [void] em vez de $void
+        [void]$wsus.GetDatabaseConfiguration()
         $healthChecks["Conexão com Banco de Dados"] = $true
         
         # Mostra resultados
@@ -444,7 +447,7 @@ try {
             "3" {
                 Write-ColorMessage "Reindexando banco de dados WSUS..." Cyan
                 # Usa as tabelas fragmentadas já identificadas na verificação de saúde
-                Reindex-WsusDatabase -databaseType "WID" -fragmentedTables $fragmentedTables
+                Invoke-WsusReindex -databaseType "WID" -fragmentedTables $fragmentedTables
                 # Após reindexação, atualiza o estado de necessidade
                 $needsReindex = $false
             }
@@ -464,7 +467,7 @@ try {
                 
                 Write-ColorMessage "`nParte 3 - Verificando e reindexando banco de dados..." Cyan
                 if ($needsReindex) {
-                    Reindex-WsusDatabase -databaseType "WID" -fragmentedTables $fragmentedTables
+                    Invoke-WsusReindex -databaseType "WID" -fragmentedTables $fragmentedTables
                     $needsReindex = $false
                 } else {
                     # Verifica novamente - a limpeza pode ter alterado o estado de fragmentação
@@ -473,7 +476,7 @@ try {
                     $currentFragmentedTables = $fragResult[1]
                     
                     if ($currentNeedsReindex) {
-                        Reindex-WsusDatabase -databaseType "WID" -fragmentedTables $currentFragmentedTables
+                        Invoke-WsusReindex -databaseType "WID" -fragmentedTables $currentFragmentedTables
                     } else {
                         Write-ColorMessage "Reindexação não necessária no momento." Green
                     }
