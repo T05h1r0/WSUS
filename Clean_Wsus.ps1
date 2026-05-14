@@ -440,13 +440,19 @@ try {
                 
                 Invoke-WsusCleanupWithRetry "Limpando arquivos não necessários" {
                     Write-ColorMessage "Iniciando limpeza - pode demorar varios minutos..." Yellow
-                    Invoke-WsusServerCleanup -UpdateServer $wsus -CleanupUnneededContentFiles
+                    Invoke-WsusServerCleanup -UpdateServer $wsus `
+                        -CleanupUnneededContentFiles `
+                        -CompressUpdates `
+                        -DeclineExpiredUpdates `
+                        -DeclineSupersededUpdates `
+                        -CleanupObsoleteUpdates
                     Start-Sleep -Seconds 30
                 }
             }
             "3" {
                 Write-ColorMessage "Reindexando banco de dados WSUS..." Cyan
-                # Usa as tabelas fragmentadas já identificadas na verificação de saúde
+                $fragResult = Test-WsusDatabaseFragmentation "WID"
+                $fragmentedTables = $fragResult[1]
                 Invoke-WsusReindex -databaseType "WID" -fragmentedTables $fragmentedTables
                 # Após reindexação, atualiza o estado de necessidade
                 $needsReindex = $false
